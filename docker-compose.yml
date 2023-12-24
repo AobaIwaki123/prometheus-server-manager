@@ -1,0 +1,34 @@
+services:
+  prometheus: # OSS for server/system monitoring
+    image: prom/prometheus
+    container_name: prometheus
+    hostname: prometheus
+    volumes:
+      - ./prometheus:/etc/prometheus # Configuration file
+      - metrics_data:/prometheus
+    ports:
+      - 9090:9090
+    restart: always
+    networks:
+      - prom
+
+  alertmanager: # Alerting for Prometheus
+    image: prom/alertmanager
+    container_name: alertmanager
+    hostname: alertmanager
+    volumes:
+      - ./alertmanager:/etc/alertmanager # Configuration file
+    command:
+      - --config.file=/etc/alertmanager/config.yml
+    ports:
+      - 9093:9093
+    restart: always
+    networks:
+      - prom
+      
+volumes:
+  metrics_data:
+    external: true
+
+networks:
+  prom:

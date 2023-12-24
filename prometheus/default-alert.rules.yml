@@ -1,0 +1,60 @@
+groups:
+  - name: Instance Down # サーバーが落ちたことを検知するAlert
+    rules:
+      - alert: InstanceDown-ANY
+        expr: up == 0
+        for: 1s
+        labels:
+          severity: critical
+          channel: alert
+        annotations:
+          firing_text: "Instance {{ $labels.instance }} down"
+          resolved_text: "Instance {{ $labels.instance }} up"
+
+  - name: Highly Disk Usage # ディスク使用量が高いことを検知するAlert
+    rules:
+      - alert: HighDiskUsage
+        expr: 100 - ((node_filesystem_avail_bytes{mountpoint="/"} * 100) / node_filesystem_size_bytes{mountpoint="/"}) > 90
+        for: 1s # default 1h
+        labels:
+          severity: critical
+          channel: general
+        annotations:
+          firing_text: "Instance {{ $labels.instance }} used more than 90% of Disk"
+          resolved_text: "Instance {{ $labels.instance }} up"
+
+  - name: Highly Memory Usage # メモリ使用量が高いことを検知するAlert
+    rules:
+      - alert: HighMemoryUsage-90%
+        expr: (node_memory_MemTotal_bytes - node_memory_MemFree_bytes - node_memory_Buffers_bytes - node_memory_Cached_bytes - node_memory_SReclaimable_bytes) / node_memory_MemTotal_bytes * 100 > 90
+        for: 5m
+        labels:
+          severity: critical
+          channel: general
+        annotations:
+          firing_text: "Instance {{ $labels.instance }} used more than 90% of memory"
+          resolved_text: "Instance {{ $labels.instance }} up"
+
+  - name: High Swap Usage
+    rules:
+      - alert: HighSwapUsage-90%
+        expr: (node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes) / node_memory_SwapTotal_bytes * 100 > 90
+        for: 5m
+        labels:
+          severity: critical
+          channel: general
+        annotations:
+          firing_text: "Instance {{ $labels.instance }} used more than 90% of swap"
+          resolved_text: "Instance {{ $labels.instance }} up"
+
+  - name: High CPU Usage
+    rules:
+      - alert: HighCPUUsage-90%
+        expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+        for: 5m
+        labels:
+          severity: critical
+          channel: alert
+        annotations:
+          firing_text: "Instance {{ $labels.instance }} used more than 90% of CPU"
+          resolved_text: "Instance {{ $labels.instance }} up"

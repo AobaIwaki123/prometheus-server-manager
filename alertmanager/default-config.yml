@@ -1,0 +1,46 @@
+global:
+  resolve_timeout: 5m # default 5m
+
+route:
+  receiver: 'default' 
+  # 同一アラート名、インスタンス名、エラーレベルでグループ化、アラートを同じ種類とみなす条件
+  group_by: ['alertname', 'instance', 'severity', 'channel']
+
+  # 同じ種類のアラートを1つのアラート群としてにまとめる時間
+  group_wait: 10m # default 10m, debug 1m
+  # 同じ種類のアラートが発生した時に次回通知するまでの時間
+  group_interval:  1h # default 1h, debug 5m
+  # 一度通知したアラートを再通知するまでの時間
+  repeat_interval: 1d # default 1d, debug 12h
+
+  routes:
+    - matchers:
+      - channel = general
+      receiver: 'critical-alert'
+      routes:
+        - matchers:
+          - alertname = HighDiskUsage
+          receiver: 'critical-alert'
+          group_wait: 10m # default 10m, debug 1m
+          group_interval:  1h # default 1h, debug 5m
+          repeat_interval: 2d # default 7d, debug 24h
+    - matchers:
+      - channel = alert
+      receiver: 'warning-alert'
+      routes:
+        - matchers:
+          - alertname = HighDiskUsage
+          receiver: 'warning-alert'
+          group_wait: 10m # default 10m, debug 1m
+          group_interval:  1h # default 1h, debug 5m
+          repeat_interval: 2d # default 7d, debug 1d
+
+
+
+receivers:
+  - name: 'default'
+
+  - name: 'critical-alert'
+
+  - name: 'warning-alert'
+
